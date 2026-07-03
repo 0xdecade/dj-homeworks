@@ -9,9 +9,23 @@ class Command(BaseCommand):
         pass
 
     def handle(self, *args, **options):
-        with open('phones.csv', 'r') as file:
-            phones = list(csv.DictReader(file, delimiter=';'))
+        phones_data = self._load_data('phones.csv')
 
-        for phone in phones:
-            # TODO: Добавьте сохранение модели
-            pass
+        for phone_dict in phones_data:
+            self._save_phone(phone_dict)
+
+    def _load_data(self, file_path):
+        """Метод для чтения CSV файла"""
+        try:
+            with open(file_path, 'r') as file:
+                return list(csv.DictReader(file, delimiter=';'))
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f"File I/O error: {e}"))
+            return []
+
+    def _save_phone(self, phone_data):
+        """Метод для сохранения одной записи в БД"""
+        try:
+            Phone.objects.create(**phone_data)
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f"DB error: {e}"))
