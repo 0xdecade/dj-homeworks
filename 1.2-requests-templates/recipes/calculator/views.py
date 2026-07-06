@@ -53,49 +53,13 @@ def home(request):
 
 
 def recipe_details(request, recipe):
-    context = _select_recipe(recipe)
+    context = {'recipe': {**DATA.get(recipe, {})}}
     servings = request.GET.get('servings', "")
     servings = int(servings) if servings.isdigit() else None
 
-    # Проверим наличие параметра servings
-    has_servings = _check_servings(servings)
-
-    # Мы можем отдать результат сразу если параметра нет
-    if not has_servings:
-        return _render_recipe(request, context)
-
-    # Проверим, что параметр servings это целое положительное целое
-    servings_is_valid = _validate_servings(servings)
-
     # Пересчитаем количество ингридиентов
-    if servings_is_valid:
-        context['recipe'] = _calc_servings(context, servings)
+    if servings >= 1:
+        context['recipe'] = {k: round(v * servings, 2) for k, v in context['recipe'].items()}
 
-    return _render_recipe(request, context)
+    return render(request, 'calculator/index.html', context)    
 
-
-def _select_recipe(recipe) -> dict:
-    """ Функция выбора рецепта """
-    # Пытаемся выбрать рецепт из словаря
-    # Чтобы избежать изменения по ссылке копируем его путем распаковки
-    return {'recipe': {**DATA.get(recipe, {})}}
-
-
-def _check_servings(servings) -> bool:
-    """ Функция проверки наличия параметра servings """
-    return servings is not None
-
-
-def _render_recipe(request, context) -> HttpResponse:
-    """ Функция рендеринга рецепта """
-    return render(request, 'calculator/index.html', context)
-
-
-def _calc_servings(context, servings) -> dict:
-    """ Функция калькулятора порций """
-    return {k: round(v * servings, 2) for k, v in context['recipe'].items()}
-
-
-def _validate_servings(servings) -> bool:
-    """ Функция валидации порций """
-    return servings > 1
