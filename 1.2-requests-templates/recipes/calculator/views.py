@@ -99,13 +99,3 @@ def _calc_servings(context, servings) -> dict:
 def _validate_servings(servings) -> bool:
     """ Функция валидации порций """
     return servings > 1
-
-# Напишите ваш обработчик. Используйте DATA как источник данных
-# Результат - render(request, 'calculator/index.html', context)
-# В качестве контекста должен быть передан словарь с рецептом:
-# context = {
-#   'recipe': {
-#     'ингредиент1': количество1,
-#     'ингредиент2': количество2,
-#   }
-# }
