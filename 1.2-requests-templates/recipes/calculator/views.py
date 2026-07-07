@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponseNotFound
 from django.urls import reverse
 
 DATA = {
@@ -44,22 +44,33 @@ DATA = {
 
 
 def home(request):
-    LINK = '''<a href="{}">{}</a>'''
-    links = {k: reverse('details', args=[k]) for k in DATA.keys()}
-    msg = "<li>".join(["<ul>"] + [LINK.format(link, title)
-                      for title, link in links.items()])
-    msg = "<div>Доступные рецепты:</div>" + msg
-    return HttpResponse(msg)
+    template = "calculator/menu.html"
+    context = {
+        'title': 'Рецепты:',
+        'heading': 'Доступные рецепты:',
+        'empty': 'Нет рецептов',
+        'recipes': {k: reverse('details', args=[k]) for k in DATA.keys()}}
+
+    return render(request, template, context)
 
 
 def recipe_details(request, recipe):
-    context = {'recipe': {**DATA.get(recipe, {})}}
+    DEFAULT_SERVINGS = 1
+    DIGITS = 2
+
+    template = 'calculator/index.html'
+    context = {'recipe': {}}
+
+    try:
+        recipe = DATA[recipe]
+    except KeyError:
+        return HttpResponseNotFound('Рецепт отстутвует')
+
     servings = request.GET.get('servings', "")
-    servings = int(servings) if servings.isdigit() else None
+    servings = int(servings) if servings.isdigit() else DEFAULT_SERVINGS
+    servings = servings if servings >= 1 else DEFAULT_SERVINGS
 
-    # Пересчитаем количество ингридиентов
-    if servings >= 1:
-        context['recipe'] = {k: round(v * servings, 2) for k, v in context['recipe'].items()}
+    context['recipe'] = {k: round(v * servings, DIGITS)
+                         for k, v in recipe.items()}
 
-    return render(request, 'calculator/index.html', context)    
-
+    return render(request, template, context)

@@ -1,0 +1,10 @@
+{% extends "calculator/base.html" %}
+{% block content %}
+<ul>
+    {% for title, link in recipes.items %}
+    <li><a href="{{ link }}">{{ title }}</a></li>
+    {% empty %}
+    <div> {{ empty }} </div>
+    {% endfor %}
+</ul>
+{% endblock %}
